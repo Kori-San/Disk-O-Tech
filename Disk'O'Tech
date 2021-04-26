@@ -1,0 +1,309 @@
+#!/bin/bash
+#clear
+
+## /-|Disk'O'Tech v.1.0 by Kori-San / 2021|-\ ##
+
+#Defining Functions
+function basew()
+{
+  tput sgr0
+}
+
+function boldw()
+{
+  tput sgr0 ; tput bold
+}
+
+function alertw()
+{
+  tput sgr0 ; tput blink ; tput bold ; tput setaf 1
+}
+
+function savew()
+{
+  tput sgr0 ; tput blink ; tput smul ; tput sitm ; tput setaf 2
+}
+
+function succesw()
+{
+  tput sgr0 ; tput sitm ; tput setaf 2
+}
+
+function errorw()
+{
+  tput sgr0 ; tput bold ; tput setaf 1
+}
+
+function delimiter()
+{
+  boldw ; tput blink ; echo -e "\n------------------------------------" ;
+  boldw ; echo " / / / / / / / / / / / / / / / / / /" ;
+  boldw ; tput blink ; echo -e "------------------------------------\n" ; basew
+}
+
+#Warning
+clear
+alertw ; echo -e "Some features will not work proprely if there are proccesses running background.\nMake sure you have quitted all your Applications and/or saved all your work before running this script !\n" ; basew
+sleep 2.5
+boldw ; echo -e "Do you want to continue now ? (Y/N)\n" ; basew
+read -r YN
+while : ; do
+  if [ "$YN" == "Y" ] || [ "$YN" == "Yes" ] || [ "$YN" == "YES" ] || [ "$YN" == "y" ] || [ "$YN" == "yes" ] ; then
+    break
+  elif [ "$YN" == "N" ] || [ "$YN" == "No" ] || [ "$YN" == "NO" ] || [ "$YN" == "n" ] || [ "$YN" == "no" ] ; then
+    succesw ; echo -e "Goodbye then !\n" ; basew
+    exit 0
+  else
+  errorw ; echo -e "\nInvalid answer\n" ; basew ; clear
+  fi
+done
+
+#Defining 2 vars for the OS X Vers, one in the format "XX.XX.XX" and the other one in "XXXXXX" so we can compare them
+OSXVers=$(sw_vers | sed -n 's/ProductVersion:.//p')
+CompareVers=$(echo $OSXVers | sed 's/\.//g')
+
+#Announcing the OS X Vers
+clear
+echo -e "Your OS X version is : $OSXVers\n"
+sleep 2.5
+
+#Comparing the versions
+if [ "$CompareVers" -ge "1060" ] ; then
+  #If the OS X Vers is tested
+  succesw ; echo -e "This OS X Version is tested, if any bug is encountered please send a message to the creator of the script.\n" ; basew
+else
+  #If it's not
+  errorw ; echo -e "This OS X Version is untested, if any bug is encountered please send a message to the creator of the script.\n" ; basew
+fi
+
+#Asking for Snapshots if it's avaible
+while : ; do
+  if [ "$CompareVers" -ge "10130" ] ; then
+     #If the OS X Vers can make Snapshots then we ask to do it so we can avoid losing data if the code bugs
+     boldw ; echo -e "Your version is compatible with Snapshots.\nDo you want to make one before the script begin ? (Y/N)\n" ; basew
+     read -r YN
+     if [ "$YN" == "Y" ] || [ "$YN" == "Yes" ] || [ "$YN" == "YES" ] || [ "$YN" == "y" ] || [ "$YN" == "yes" ] ; then
+       sleep 1
+       savew ; echo -e "\nSaving ...\n" ; basew
+       sleep 1
+       tmutil localsnapshot
+       sleep 2.5
+       break
+     elif [ "$YN" == "N" ] || [ "$YN" == "No" ] || [ "$YN" == "NO" ] || [ "$YN" == "n" ] || [ "$YN" == "no" ] ; then
+     succesw ; echo -e "\nNothing is going to be saved\n" ; basew
+     sleep 2.5
+     break
+     else
+     errorw ; echo -e "\nInvalid answer\n" ; basew
+     fi
+  fi
+done
+
+#S.M.A.R.T Status check
+sudo -K
+CurrentMountedDisk=$(df . | grep / | sed "s/ .*//g")
+clear; SMARTState=$(sudo diskutil info $CurrentMountedDisk | grep SMART | sed "s/SMART Status://g" | sed "s/ //g")
+if [ "$SMARTState" == "Verified" ] ; then
+  succesw ; echo -e "\nS.M.A.R.T Status appears to be good\n" ; basew
+else
+  errorw ; echo -e "\nS.M.A.R.T Status appears to be bad\n Are you sure to continue (Y/N) ?" ; basew
+  while : ; do
+      read -r answer
+      if [ "$answer" == "Y" ] || [ "$answer" == "Yes" ] || [ "$answer" == "YES" ] || [ "$answer" == "y" ] || [ "$answer" == "yes" ] ; then
+        boldw ; echo -e "\nLet's continue then\n" ; basew
+        break
+      elif [ "$answer" == "N" ] || [ "$answer" == "No" ] || [ "$answer" == "NO" ] || [ "$answer" == "n" ] || [ "$answer" == "no" ] ; then
+        succesw ; echo -e "\nGoodbye then !\n" ; basew
+        exit 0
+      else
+        errorw ; echo -e "\nInvalid answer\n" ; basew
+      fi
+  done
+fi
+sleep 5
+
+#System Integrity check
+sleep 1 ; savew ; echo -e "\nAnalysing System Integrity...\n" ; basew
+VolumeState=$(sudo diskutil verifyVolume $CurrentMountedDisk  | grep "appears to be" | sed "s/.*appears to be//" | sed "s/ //")
+if [ "$VolumeState" == "OK" ] ; then
+  succesw ; echo -e "\nSystem Integrity appears to be good\n" ; basew
+else
+  errorw ; echo -e "\nSystem Integrity Status appears to be bad or the data is unreachable\nMake sure your volume is not encrypted\nDo you want to continue (Y/N) ?" ; basew
+  while : ; do
+      read -r answer
+      if [ "$answer" == "Y" ] || [ "$answer" == "Yes" ] || [ "$answer" == "YES" ] || [ "$answer" == "y" ] || [ "$answer" == "yes" ] ; then
+        boldw ; echo -e "\nLet's continue then\n" ; basew
+        break
+      elif [ "$answer" == "N" ] || [ "$answer" == "No" ] || [ "$answer" == "NO" ] || [ "$answer" == "n" ] || [ "$answer" == "no" ] ; then
+        succesw ; echo -e "\nGoodbye then !\n" ; basew
+        exit 0
+      else
+        errorw ; echo -e "\nInvalid answer\n" ; basew ; clear
+      fi
+  done
+fi
+sleep 5
+
+while : ; do
+ clear ; delimiter
+ echo -e "Hello and welcome to Disk'O'Tech ! Please choose an option !\n"
+ echo -e "1: Check Used/Avaible Space of Volumes"
+ echo -e "2: Virtual SpringCleaning !"
+ echo -e "3: Spotlight Index Rebuild"
+ echo -e "4: PKGs Cleaner (PiKaGu)"
+ if [ "$CompareVers" -ge "10130" ] ; then ; echo -e "TM: Snapshot Manager" ; fi
+ echo -e "\nEXIT: Exit the Script"
+ delimiter ; read -r answer
+ if [ "$answer" == "1" ] ; then
+   while : ; do
+     clear ; df -P -h #Display all connected devices's current Storage
+     tput blink ; echo -e "\nPress ENTER to go back to the Menu\n" ; basew
+     read -r answer
+     break
+   done
+ elif [ "$answer" == "2" ] ; then
+   clear
+   sudo rm -vfr ~/Library/Caches/* && savew ; echo -e "User Caches cleared" ; basew #Clear User Caches
+   sleep 1.5 ; clear
+   sudo rm -vfr /Library/Caches/* && savew ; echo -e "Common Caches cleared" ; basew #Clear Common Caches
+   sleep 1.5 ; clear
+   sudo atsutil databases -remove && savew ; echo -e "Font Caches cleared" ; basew #Clear Font Caches
+   sleep 1.5 ; clear
+   sudo update_dyld_shared_cache -force && savew ; echo -e "Shared Caches rebuilt" ; basew #Rebuild Shared Caches
+   sleep 1.5 ; clear
+   sudo /usr/libexec/xpchelper --rebuild-cache && savew ; echo -e "XPC Caches rebuilt" ; basew #Rebuild XPC Caches
+   sleep 1.5 ; clear
+   cd ~/Library/Mail/V*/MailData/ && sqlite3 Envelope\ Index vacuum && savew ; echo -e "Mail Index rebuilt" ; basew #Rebuild Mail Index
+   sleep 1.5 ; clear
+   sudo dscacheutil -flushcache && savew ; echo -e "DNS Caches purged" ; basew #Purge DNS
+   sleep 1.5 ; clear
+   sudo rm -fr /var/vm/sleepimage && savew ; echo -e "Virtual Memory purged" ; basew #Purge Swap Files (Virtual Memory)
+   sleep 1.5 ; clear
+   sudo purge ; savew ; echo -e "RAM purged" ; basew #Purge RAM
+   sleep 1.5 ; clear
+   sudo /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -kill -r -domain local -domain system -domain user && savew ; echo -e "LaunchServices repaired" ; basew #Repair LaunchServices
+   sleep 1.5 ; clear
+   cd /tmp && sudo curl -O https://raw.githubusercontent.com/Austere-J/RepoRepairPermissions/master/RepairPermissions3.9.3225_870c5cd76ea7c7f462a33ba574b0693a.zip #Download Repo from Git
+   sudo unzip /tmp/*.zip ; sudo chmod 733 RepairPermissions ; sudo ./RepairPermissions / #Repair Permissions
+   savew ; echo -e "Permissions repaired" ; basew
+   sleep 1.5
+   clear
+   boldw ; echo -e "\nWe advice you to rebuild the Spotlight Index (See previous Menu) and to restart your computer.\n" ; basew
+   tput blink ; echo -e "\nPress ENTER to go back to the Menu\n" ; basew
+   read -r answer
+ elif [ "$answer" == "3" ] ; then
+   clear
+   if [ "$CompareVers" -lt "10140" ] ; then
+     sudo mdutil -i off / #Disable automatic indexation from Spotlight
+   fi
+     savew ; echo -e "Rebuilding ..." ; basew
+     sudo mdutil -E / #Rebuild Spotlight Index
+     succesw ; echo -e "Done" ; basew
+   if [ "$CompareVers" -lt "10140" ] ; then
+     sudo mdutil -i on / #Enable automatic indexation from Spotlight
+   fi
+     boldw ; echo -e "\nWe advice you to restart your computer.\n" ; basew
+     tput blink ; echo -e "\nPress ENTER to go back to the Menu\n" ; basew
+     read -r answer
+ elif [ "$answer" == "4" ] ; then
+   clear
+   ## PiKaGu by Kori-San / Check 'https://github.com/Kori-San/PiKaGu' for the Standalone version
+   boldw ; echo -e "Welcome to PiKaGu v1.2 by Kori-San !\nCheck 'github.com/Kori-San/PiKaGu' for the Standalone version.\n" ; basew
+   sleep 1
+   delimiter ; pkgutil --pkgs  | sort | grep -v 'com.apple.pkg' | grep -n '' | sed 's/:/ : /' ; delimiter
+   echo -e "All the installed Packages have been listed above.\nPlease enter the numbers (Separated by a blank space) of all the Packages you want to uninstall : \n"
+   read -r ListPkg
+   for NbPkg in $ListPkg
+     do
+       PkgFound=$(pkgutil --pkgs  | sort | grep -v 'com.apple.pkg' | grep -n '' | sed 's/:/ : /' | grep -m 1 "$NbPkg : " | sed "s/$NbPkg : //g")
+       ListPkgToDel+=("$PkgFound")
+     done
+   for PkgToDel in "${ListPkgToDel[@]}"
+     do
+       clear
+       boldw ; echo -e "\nYou've chosen to uninstall: $PkgToDel\n" ; basew
+       pkgutil --pkg-info $PkgToDel
+       sleep 2.5
+       pkgutil --only-files --files $PkgToDel | sed 's/.app.*/.app/' | sed 's@/\..*@/@g' | uniq | tr '\n' '\0' | xargs -n 1 -0
+       #The sed part is there so we can avoid some miswritting on the "pkgutil --only-files"(for example TeamViewer path is /Applications/./TeamViewer.app)
+       boldw ; echo -e "\nThose files are going to be deleted for the uninstall:\n" ; basew
+       sleep 2.5
+       while : ; do
+         alertw ; echo -e "\nAre you sure to uninstall $PkgToDel ? (Y/N)\n" ; basew
+         read -r YesNo
+         if [ $YesNo == "Y" ] || [ $YesNo == "Yes" ] || [ $YesNo == "YES" ] || [ $YesNo == "y" ] || [ $YesNo == "yes" ] ; then
+             PkgPath=$(pkgutil --pkg-info $PkgToDel | grep 'location:' | awk '{print $2}' | sed 's@/\..*@/@g')
+             echo "Go to /$PkgPath"
+             sleep 1.5
+             cd /$PkgPath
+             pkgutil --only-files --files $PkgToDel | sed 's/.app.*/.app/' | uniq | tr '\n' '\0' | xargs -n 1 -0 sudo rm -vfr
+             #We use sed so we can take off the .app extension and directly delete the app if there is one
+           	 pkgutil --only-dirs --files $PkgToDel |  sed 's/.app.*/.app/' | uniq | tr '\n' '\0' | xargs -n 1 -0 sudo rmdir -p
+             #We use sed so we can take off the .app extension and directly delete the app folder if there is one and if he is empty
+           	 sudo pkgutil --forget $PkgToDel
+             succesw ; echo -e "\nSuccess" ; basew
+             sleep 1
+             break
+         elif [ $YesNo == "N" ] || [ $YesNo == "No" ] || [ $YesNo == "NO" ] || [ $YesNo == "n" ] || [ $YesNo == "no" ]; then
+             succesw ; echo -e "\nCanceled" ; basew
+             sleep 1
+             break
+         else
+             errorw ; echo -e "\nInvalid Answer" ; basew
+             sleep 1
+         fi
+       done
+     done
+ elif [ "$answer" == "TM" ] || [ "$answer" == "tm" ] || [ "$answer" == "Tm" ]; then
+   if [ "$CompareVers" -lt "10130" ] ; then
+     clear
+     echo -e "You're not allowed to access this Menu\nYou need to be at least in MacOSX 10.13.0\n"
+     tput blink ; echo -e "\nPress ENTER to go back to the Menu\n" ; basew
+     read -r answer
+     break
+   elif [ "$CompareVers" -ge "10130" ] ; then
+     TM_Manager=true
+   fi
+   while : $TM_Manager ; do
+     clear ; delimiter
+     echo -e "|-| Snapshot Manager |-|\n"
+     echo -e "1: Make a Snapshot"
+     echo -e "2: Erase one/multiple Snapshot"
+     echo -e "\nRETURN: Exit Snapshot Manager" ; delimiter
+     read -r answer
+     if [ "$answer" == "1" ] ; then
+       clear ;
+       savew ; echo -e "Saving ...\n" ; basew
+       sleep 1
+       tmutil localsnapshot
+       sleep 1
+     elif [ "$answer" == "2" ] ; then
+       clear
+       delimiter ; tmutil listlocalsnapshots / | sort | grep -n '' | sed "s/com.apple.TimeMachine./ /" |  sed 's/:/ : /' ; delimiter
+       echo -e "All the Snapshots have been listed above.\nThey have been sorted (Oldest one first, Newest one last).\nUsing format YEAR-MONTH-DAY-HourMinutesSecond.\nPlease enter the numbers (Separated by a blank space) of all the Snapshots you want to delete : \n"
+       read -r ListTM
+       for NbTM in $ListTM
+        do
+         TMFound=$(tmutil listlocalsnapshots / | sort | grep -n '' | sed "s/com.apple.TimeMachine./ /" |  sed 's/:/ : /' | grep -m 1 "$NbTM : " | sed "s/$NbTM : //g")
+         ListTMToDel+=("$TMFound")
+        done
+       for TMToDel in "${ListTMToDel[@]}"
+        do
+         tmutil deletelocalsnapshots $TMToDel
+        done
+     elif [ "$answer" == "Return" ] || [ "$answer" == "return" ] || [ "$answer" == "RETURN" ] ; then
+       TM_Manger=false
+       break
+     else
+       errorw ; echo -e "\nInvalid answer\n" ; basew
+       clear
+     fi
+    done
+ elif [ "$answer" == "EXIT" ] || [ "$answer" == "exit" ] || [ "$answer" == "Exit" ]; then
+   boldw ; echo -e "\nGoodbye and thank you for using Disk'O'Tech\n" ; basew
+   sleep 1
+   exit 0
+ else
+   errorw ; echo -e "\nInvalid answer\n" ; basew ; clear
+ fi
+done

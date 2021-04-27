@@ -151,7 +151,9 @@ while : ; do
  echo -e "2: Virtual SpringCleaning !"
  echo -e "3: Spotlight Index Rebuild"
  echo -e "4: PKGs Cleaner (PiKaGu)"
- if [ "$CompareVers" -ge "10130" ] ; then ; echo -e "TM: Snapshot Manager" ; fi
+ if [ "$CompareVers" -ge "10130" ] ; then 
+  echo -e "TM: Snapshot Manager" 
+ fi
  echo -e "\nEXIT: Exit the Script"
  delimiter ; read -r answer
  if [ "$answer" == "1" ] ; then
@@ -208,8 +210,8 @@ while : ; do
  elif [ "$answer" == "4" ] ; then
    clear
    ## PiKaGu by Kori-San / Check 'https://github.com/Kori-San/PiKaGu' for the Standalone version
-   boldw ; echo -e "Welcome to PiKaGu v1.2 by Kori-San !\nCheck 'github.com/Kori-San/PiKaGu' for the Standalone version.\n" ; basew
-   sleep 1
+   boldw ; echo -e "Welcome to PiKaGu v1.2 by Kori-San !\n\nCheck 'github.com/Kori-San/PiKaGu' for the Standalone version.\n" ; basew
+   sleep 2
    delimiter ; pkgutil --pkgs  | sort | grep -v 'com.apple.pkg' | grep -n '' | sed 's/:/ : /' ; delimiter
    echo -e "All the installed Packages have been listed above.\nPlease enter the numbers (Separated by a blank space) of all the Packages you want to uninstall : \n"
    read -r ListPkg
@@ -224,9 +226,9 @@ while : ; do
        boldw ; echo -e "\nYou've chosen to uninstall: $PkgToDel\n" ; basew
        pkgutil --pkg-info $PkgToDel
        sleep 2.5
-       pkgutil --only-files --files $PkgToDel | sed 's/.app.*/.app/' | sed 's@/\..*@/@g' | uniq | tr '\n' '\0' | xargs -n 1 -0
        #The sed part is there so we can avoid some miswritting on the "pkgutil --only-files"(for example TeamViewer path is /Applications/./TeamViewer.app)
        boldw ; echo -e "\nThose files are going to be deleted for the uninstall:\n" ; basew
+       pkgutil --only-files --files $PkgToDel | sed 's/.app.*/.app/' | sed 's@/\..*@/@g' | uniq | tr '\n' '\0' | xargs -n 1 -0
        sleep 2.5
        while : ; do
          alertw ; echo -e "\nAre you sure to uninstall $PkgToDel ? (Y/N)\n" ; basew
@@ -280,7 +282,7 @@ while : ; do
      elif [ "$answer" == "2" ] ; then
        clear
        delimiter ; tmutil listlocalsnapshots / | sort | grep -n '' | sed "s/com.apple.TimeMachine./ /" |  sed 's/:/ : /' ; delimiter
-       echo -e "All the Snapshots have been listed above.\nThey have been sorted (Oldest one first, Newest one last).\nUsing format YEAR-MONTH-DAY-HourMinutesSecond.\nPlease enter the numbers (Separated by a blank space) of all the Snapshots you want to delete : \n"
+       echo -e "All the Snapshots have been listed above.\nThey have been sorted (Oldest one first, Newest one last).\nUsing format YEAR-MONTH-DAY-HoursMinutesSeconds.\nPlease enter the numbers (Separated by a blank space) of all the Snapshots you want to delete : \n"
        read -r ListTM
        for NbTM in $ListTM
         do

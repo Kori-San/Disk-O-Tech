@@ -45,16 +45,16 @@ function delimiter()
 clear
 alertw ; echo -e "Some features will not work proprely if there are proccesses running background.\nMake sure you have quitted all your Applications and/or saved all your work before running this script !\n" ; basew
 sleep 2.5
-boldw ; echo -e "Do you want to continue now ? (Y/N)\n" ; basew
-read -r YN
 while : ; do
+  boldw ; echo -e "Do you want to continue now ? (Y/N)\n" ; basew
+  read -r YN
   if [ "$YN" == "Y" ] || [ "$YN" == "Yes" ] || [ "$YN" == "YES" ] || [ "$YN" == "y" ] || [ "$YN" == "yes" ] ; then
     break
   elif [ "$YN" == "N" ] || [ "$YN" == "No" ] || [ "$YN" == "NO" ] || [ "$YN" == "n" ] || [ "$YN" == "no" ] ; then
     succesw ; echo -e "Goodbye then !\n" ; basew
     exit 0
   else
-  errorw ; echo -e "\nInvalid answer\n" ; basew ; clear
+    clear ; errorw ; echo -e "\nInvalid answer\n" ; basew
   fi
 done
 
